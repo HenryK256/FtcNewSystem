@@ -34,12 +34,11 @@ public abstract class ReplayOpMode extends CommonOpMode {
             e.printStackTrace();
         }
 
-        motorPowerArr = mainArr.get(0);
-        motorPosArr = mainArr.get(1);
-        servoPosArr = mainArr.get(2);
-        timeArr = mainArr.get(3);
-        motorInfos = mainArr.get(4);
-        servoInfos = mainArr.get(5);
+        motorPosArr = mainArr.get(0);
+        servoPosArr = mainArr.get(1);
+        timeArr = mainArr.get(2);
+        motorInfos = mainArr.get(3);
+        servoInfos = mainArr.get(4);
 
         for (String info : motorInfos) {
             for (DcMotor motor : hardwareMap.getAll(DcMotor.class)) {
@@ -71,9 +70,11 @@ public abstract class ReplayOpMode extends CommonOpMode {
             for (int i = 0; i < motorList.size(); i++) {
                 double factor = ((int) motorPosArr.get(i).get(index) - motorList.get(i).getCurrentPosition()) / FACTOR_DIVISOR;
 
-                motorList.get(i).setPower(((double) motorPowerArr.get(i).get(index) + factor) * replaySpeed); // Questionable but may work
-
+                //motorList.get(i).setPower(); // Questionable but may work
                 motorList.get(i).setTargetPosition((int) motorPosArr.get(i).get(index));
+
+                double t = DrivingCurve.getT(motorList.get(i));
+                motorList.get(i).setPower(DrivingCurve.curvedPower(motorList.get(i), t));
             }
 
             for (int i = 0; i < servoList.size(); i++) {

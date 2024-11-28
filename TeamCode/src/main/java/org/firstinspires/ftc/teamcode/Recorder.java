@@ -9,7 +9,6 @@ public class Recorder extends Thread {
     private int iterationTime = 10;
     private ArrayList<Integer> timeArr = new ArrayList<>();
     private ArrayList<ArrayList> mainArr = new ArrayList<>(),
-            motorPowerArr = new ArrayList<>(),
             motorPosArr = new ArrayList<>(),
             servoPosArr = new ArrayList<>();
     private ArrayList<DcMotor> motorList;
@@ -19,7 +18,6 @@ public class Recorder extends Thread {
         servoList = sList;
 
         for (DcMotor motor : motorList) {
-            motorPowerArr.add(new ArrayList<Double>());
             motorPosArr.add(new ArrayList<Integer>());
         }
         for (Servo servo : servoList) {
@@ -31,7 +29,7 @@ public class Recorder extends Thread {
             int start = (int)System.currentTimeMillis();
 
             for (int i = 0; i < motorList.size(); i++) {
-                motorPowerArr.get(i).add(motorList.get(i).getPower());
+                //motorPowerArr.get(i).add(motorList.get(i).getPower());
                 motorPosArr.get(i).add(motorList.get(i).getCurrentPosition());
             }
             for (int i = 0; i < servoList.size(); i++) {
@@ -52,7 +50,7 @@ public class Recorder extends Thread {
             while (motorPosSum(0) == motorPosSum(1) && servoPosSum(0) == servoPosSum(1)) {
                 for (int i = 0; i < motorPosArr.size(); i++) {
                     motorPosArr.get(i).remove(0);
-                    motorPowerArr.get(i).remove(0);
+                    //motorPowerArr.get(i).remove(0);
                 }
                 for (int i = 0; i < servoPosArr.size(); i++) {
                     servoPosArr.get(i).remove(0);
@@ -61,7 +59,7 @@ public class Recorder extends Thread {
             }
         } catch (Exception e) {}
 
-        mainArr.add(motorPowerArr);
+        //mainArr.add(motorPowerArr);
         mainArr.add(motorPosArr);
         mainArr.add(servoPosArr);
         mainArr.add(timeArr);
