@@ -72,21 +72,19 @@ public abstract class ReplayOpMode extends CommonOpMode {
 
             for (int i = 0; i < motorList.size(); i++) {
                 tList[i] = DrivingCurve.getT(motorList.get(i));
+                DrivingThread subThread = new DrivingThread(motorList.get(i), tList[i]);
+                Thread mainThread = new Thread(subThread);
+
+                mainThread.start();
+            }
+
+            for (int i = 0; i < servoList.size(); i++) {
+                servoList.get(i).setPosition((double) servoPosArr.get(i).get(index));
             }
 
             while (diffSum > 10) {
-                diffSum = 0;
-
                 for (int i = 0; i < motorList.size(); i++) {
                     diffSum += Math.abs(motorList.get(i).getTargetPosition() - motorList.get(i).getCurrentPosition());
-                }
-
-                for (int i = 0; i < motorList.size(); i++) {
-                    motorList.get(i).setPower(DrivingCurve.curvedPower(motorList.get(i), tList[i]));
-                }
-
-                for (int i = 0; i < servoList.size(); i++) {
-                    servoList.get(i).setPosition((double) servoPosArr.get(i).get(index));
                 }
             }
 
