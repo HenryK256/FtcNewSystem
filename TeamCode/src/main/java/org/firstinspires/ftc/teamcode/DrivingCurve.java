@@ -3,7 +3,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 public class DrivingCurve {
-    private static double p = 50.0; // Adjust for smoothing
+    private static double p = 50; // Adjust for smoothing
     public static double getT(DcMotor motor) {
         return Math.abs(motor.getCurrentPosition() - motor.getTargetPosition());
     }
