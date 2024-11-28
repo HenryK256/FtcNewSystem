@@ -28,19 +28,22 @@ public class RecordOpMode extends ManualControlOpMode {
     private ObjectOutputStream oos;
     private ArrayList<DcMotor> motorList = new ArrayList<>();
     private ArrayList<Servo> servoList = new ArrayList<>();
+    private ArrayList<ArrayList> mainArr = new ArrayList<>(),
+            motorPosArr = new ArrayList<>(),
+            servoPosArr = new ArrayList<>();
     private String title = "";
-    private boolean firstTime = true;
-    Thread recorder;
-    Recorder subRecorder;
     public void initialize() {
         motorList.addAll(hardwareMap.getAll(DcMotor.class));
         servoList.addAll(hardwareMap.getAll(Servo.class));
-        subRecorder = new Recorder(motorList, servoList);
-        recorder = new Thread(subRecorder);
+
+        for (DcMotor motor : motorList) {
+            motorPosArr.add(new ArrayList<Integer>());
+        }
+        for (Servo servo : servoList) {
+            servoPosArr.add(new ArrayList<Double>());
+        }
     }
     public void saveWithTitle(String t) {
-        recorder.interrupt();
-
         title = t;
 
         telemetry.addLine("Programming in [" + title + "] slot...");
@@ -49,9 +52,34 @@ public class RecordOpMode extends ManualControlOpMode {
         sleep(1500);
 
         try {
+            while (motorPosSum(0) == motorPosSum(1) && servoPosSum(0) == servoPosSum(1)) {
+                for (int i = 0; i < motorPosArr.size(); i++) {
+                    motorPosArr.get(i).remove(0);
+                }
+                for (int i = 0; i < servoPosArr.size(); i++) {
+                    servoPosArr.get(i).remove(0);
+                }
+            }
+        } catch (Exception e) {}
+
+        mainArr.add(motorPosArr);
+        mainArr.add(servoPosArr);
+
+        ArrayList<String> motorInfos = new ArrayList<>(), servoInfos = new ArrayList<>();
+        for (DcMotor motor : motorList) {
+            motorInfos.add(motor.getConnectionInfo());
+        }
+        for (Servo servo : servoList) {
+            servoInfos.add(servo.getConnectionInfo());
+        }
+
+        mainArr.add(motorInfos);
+        mainArr.add(servoInfos);
+
+        try {
             bos = new BufferedOutputStream(new FileOutputStream(Environment.getExternalStorageDirectory().getAbsolutePath() + "/auto_data.ser." + title));
             oos = new ObjectOutputStream(bos);
-            oos.writeObject(subRecorder.compileMainArr());
+            oos.writeObject(mainArr);
             oos.close();
         } catch (IOException e) {
             telemetry.addLine(e.getStackTrace().toString());
@@ -61,13 +89,17 @@ public class RecordOpMode extends ManualControlOpMode {
     }
     @Override
     public void runner() {
-        if (firstTime) {
-            recorder.start();
-
-            firstTime = false;
-        }
-        
         super.runner();
+
+        if (gamepad1.share) {
+            for (int i = 0; i < motorList.size(); i++) {
+                motorPosArr.get(i).add(motorList.get(i).getCurrentPosition());
+            }
+            for (int i = 0; i < servoList.size(); i++) {
+                servoPosArr.get(i).add(servoList.get(i).getPosition());
+            }
+            sleep(2000);
+        }
 
         if (gamepad1.share && gamepad1.x) {
             saveWithTitle("blue"); // Saved into blue file
@@ -75,5 +107,23 @@ public class RecordOpMode extends ManualControlOpMode {
         if (gamepad1.share && gamepad1.y) {
             saveWithTitle("red"); // Saved into red file
         }
+    }
+    public int motorPosSum(int index) {
+        int sum = 0;
+
+        for (int i = 0; i < motorPosArr.size(); i++) {
+            sum += (int)motorPosArr.get(i).get(index);
+        }
+
+        return sum;
+    }
+    public double servoPosSum(int index) {
+        double sum = 0;
+
+        for (int i = 0; i < servoPosArr.size(); i++) {
+            sum += (double)servoPosArr.get(i).get(index);
+        }
+
+        return sum;
     }
 }

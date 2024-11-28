@@ -14,8 +14,7 @@ import java.util.ArrayList;
 public abstract class ReplayOpMode extends CommonOpMode {
     private double replaySpeed = 1; // Change this value for how quickly you want to replay the recorded code
     // It has a limit and should not be too high
-    private int index = 0, start = 0;
-    ArrayList<Integer> timeArr;
+    private int index = 0;
     ArrayList<String> motorInfos, servoInfos;
     ArrayList<ArrayList> mainArr = new ArrayList<>(),
         motorPowerArr,
@@ -35,9 +34,8 @@ public abstract class ReplayOpMode extends CommonOpMode {
 
         motorPosArr = mainArr.get(0);
         servoPosArr = mainArr.get(1);
-        timeArr = mainArr.get(2);
-        motorInfos = mainArr.get(3);
-        servoInfos = mainArr.get(4);
+        motorInfos = mainArr.get(2);
+        servoInfos = mainArr.get(3);
 
         for (String info : motorInfos) {
             for (DcMotor motor : hardwareMap.getAll(DcMotor.class)) {
@@ -64,23 +62,32 @@ public abstract class ReplayOpMode extends CommonOpMode {
     public void runner() {
         if (index == motorPowerArr.get(0).size()) requestOpModeStop();
         else {
-            start = (int) System.currentTimeMillis();
-
             for (int i = 0; i < motorList.size(); i++) {
                 motorList.get(i).setTargetPosition((int) motorPosArr.get(i).get(index));
-
-                double t = DrivingCurve.getT(motorList.get(i));
-                motorList.get(i).setPower(DrivingCurve.curvedPower(motorList.get(i), t));
             }
 
-            for (int i = 0; i < servoList.size(); i++) {
-                servoList.get(i).setPosition((double) servoPosArr.get(i).get(index));
+            int diffSum = 11;
+
+            double[] tList = new double[motorList.size()];
+
+            for (int i = 0; i < motorList.size(); i++) {
+                tList[i] = DrivingCurve.getT(motorList.get(i));
             }
 
-            long runTime = System.currentTimeMillis() - start;
+            while (diffSum > 10) {
+                diffSum = 0;
 
-            if (runTime < timeArr.get(index)/replaySpeed) {
-                sleep((long)(timeArr.get(index)/replaySpeed - runTime));
+                for (int i = 0; i < motorList.size(); i++) {
+                    diffSum += Math.abs(motorList.get(i).getTargetPosition() - motorList.get(i).getCurrentPosition());
+                }
+
+                for (int i = 0; i < motorList.size(); i++) {
+                    motorList.get(i).setPower(DrivingCurve.curvedPower(motorList.get(i), tList[i]));
+                }
+
+                for (int i = 0; i < servoList.size(); i++) {
+                    servoList.get(i).setPosition((double) servoPosArr.get(i).get(index));
+                }
             }
 
             index++;
