@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import java.util.ArrayList;
 
 public class Recorder extends Thread {
-    private int iterationTime = 10;
+    private int iterationTime = 50;
     private ArrayList<Integer> timeArr = new ArrayList<>();
     private ArrayList<ArrayList> mainArr = new ArrayList<>(),
             motorPosArr = new ArrayList<>(),
